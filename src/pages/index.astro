@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import Workspace from '../components/workspace/Workspace';
+const isDev = import.meta.env.DEV;
 ---
 <!doctype html>
 <html lang="en">
@@ -8,8 +9,17 @@ import Workspace from '../components/workspace/Workspace';
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>StackSurgeon</title>
+  {isDev && (
+    <Fragment set:html={`<script type="module">
+      import RefreshRuntime from "/@react-refresh";
+      RefreshRuntime.injectIntoGlobalHook(window);
+      window.$RefreshReg$ = () => {};
+      window.$RefreshSig$ = () => (type) => type;
+      window.__vite_plugin_react_preamble_installed__ = true;
+    </script>`} />
+  )}
 </head>
 <body>
-  <Workspace client:only="react" />
+  <Workspace client:load />
 </body>
 </html>
