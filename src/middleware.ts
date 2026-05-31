@@ -1,8 +1,13 @@
 import { defineMiddleware } from 'astro:middleware';
 
+// 'unsafe-inline' is required because Astro emits inline hydration scripts
+// for islands (<astro-island> custom-element bootstrap + per-island runner)
+// and we have no per-request nonce plumbing. Tighten to nonces in a follow-up.
+const SCRIPT_SRC = "'self' 'unsafe-inline'";
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self'",
+  `script-src ${SCRIPT_SRC}`,
   "style-src 'self' 'unsafe-inline'",
   "connect-src 'self'",
   "img-src 'self' data:",

@@ -12,5 +12,13 @@ export default defineConfig({
   integrations: [react(), tailwind({ applyBaseStyles: false })],
   vite: {
     worker: { format: 'es' },
+    resolve: {
+      // Prevent dual-React copies (Astro SSR pulls one, vite optimizeDeps
+      // bundles another). "Invalid hook call" / useState=null without this.
+      dedupe: ['react', 'react-dom'],
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+    },
   },
 });
