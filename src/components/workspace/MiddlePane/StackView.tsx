@@ -8,6 +8,7 @@ export function StackView() {
   const phase = useApp((s) => s.phase);
   const classified = useApp((s) => s.classified);
   const buffer = useApp((s) => s.llmStreamBuffer);
+  const errorMessage = useApp((s) => s.errorMessage);
 
   const narrative = useMemo(() => {
     if (!buffer) return '';
@@ -48,6 +49,9 @@ export function StackView() {
         ))}
       </ul>
       {phase === 'analyzing' && <p className="p-3 text-xs text-slate-400">Streaming…</p>}
+      {phase === 'error' && errorMessage && (
+        <p className="p-3 text-sm text-red-600">{errorMessage}</p>
+      )}
     </div>
   );
 }
