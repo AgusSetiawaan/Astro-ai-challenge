@@ -1,0 +1,7 @@
+Fatal Exception: java.lang.RuntimeException: Outer failed
+       at com.example.app.Service.run(Service.kt:10)
+       at android.app.Activity.performCreate(Activity.java:8595)
+Caused by: java.io.IOException: Disk full
+       at com.example.app.Writer.write(Writer.kt:20)
+Caused by: java.lang.IllegalStateException: handle closed
+       at com.example.app.Handle.check(Handle.kt:5)

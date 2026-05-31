@@ -1,0 +1,12 @@
+--------- beginning of crash
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: FATAL EXCEPTION: main
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: Process: com.example.app, PID: 12345
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.String com.example.app.User.getName()' on a null object reference
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: 	at com.example.app.MainActivity.onCreate(MainActivity.java:42)
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: 	at android.app.Activity.performCreate(Activity.java:8595)
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1455)
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:201)
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:288)
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:7898)
+12-31 23:59:00.123 12345 12345 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)

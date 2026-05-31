@@ -1,0 +1,10 @@
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'google/sdk_gphone_x86/generic_x86:11/...'
+Revision: '0'
+ABI: 'x86'
+Timestamp: 2026-05-30 12:34:56.789
+pid: 1234, tid: 1234, name: com.example.app  >>> com.example.app <<<
+signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0
+    #00 pc 0000000000012345  /data/app/com.example.app/lib/x86/libnative.so (do_thing+42)
+    #01 pc 0000000000098765  /data/app/com.example.app/lib/x86/libnative.so (helper+12)
+    #02 pc 00000000000abcde  /system/lib/libc.so (__pthread_start+50)
