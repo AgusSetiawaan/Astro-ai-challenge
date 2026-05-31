@@ -3,6 +3,9 @@ import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 import node from '@astrojs/node';
 
+// Astro 5 removed `output: 'hybrid'`. Static + adapter + per-route
+// `export const prerender = false;` is the documented replacement: pages prerender
+// by default, API routes (src/pages/api/*) opt into SSR via the node adapter.
 export default defineConfig({
   output: 'static',
   adapter: node({ mode: 'standalone' }),
