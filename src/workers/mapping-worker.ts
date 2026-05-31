@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
-import { parseMapping, type MappingParseStats } from '@/lib/mapping/parser';
-import type { MappingTable } from '@/types';
+import { parseMapping, type MappingParseStats } from '../lib/mapping/parser';
+import type { MappingTable } from '../types';
 
 export type InMsg = { type: 'parse'; text: string };
 export type OutMsg =
