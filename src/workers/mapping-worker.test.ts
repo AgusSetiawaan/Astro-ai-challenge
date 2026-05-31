@@ -8,8 +8,8 @@ const fx = (name: string) =>
 describe('mapping-worker handleMessage', () => {
   it('parses on {type:"parse"} and returns {type:"parsed", table, stats}', () => {
     const reply = handleMessage({ type: 'parse', text: fx('mapping-r8.txt') });
+    if (!reply || reply.type !== 'parsed') throw new Error('wrong type');
     expect(reply.type).toBe('parsed');
-    if (reply.type !== 'parsed') throw new Error('wrong type');
     expect(reply.stats.classes).toBe(2);
     expect(reply.table.get('a.b.c')?.originalClass).toBe('com.example.app.MainActivity');
   });
