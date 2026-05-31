@@ -34,13 +34,14 @@ export async function* streamLlm(args: LlmStreamArgs): AsyncIterable<string> {
       if (!m) continue;
       const payload = m[1];
       if (payload === '[DONE]') return;
+      let obj: { delta?: string; error?: string };
       try {
-        const obj = JSON.parse(payload) as { delta?: string; error?: string };
-        if (obj.error) throw new Error(obj.error);
-        if (obj.delta) yield obj.delta;
-      } catch (e) {
-        if ((e as Error).message) throw e;
+        obj = JSON.parse(payload);
+      } catch {
+        continue; // skip malformed SSE payloads instead of killing the stream
       }
+      if (obj.error) throw new Error(obj.error);
+      if (obj.delta) yield obj.delta;
     }
   }
 }

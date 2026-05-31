@@ -29,7 +29,7 @@ export async function fileJiraIssue(creds: JiraCreds, payload: JiraIssue): Promi
     return {
       ok: true,
       key: json.key,
-      url: json.self ? json.self.replace('/rest/api/3/issue/', '/browse/') : undefined,
+      url: `${creds.baseUrl.replace(/\/$/, '')}/browse/${json.key}`,
       status: 201,
     };
   }
