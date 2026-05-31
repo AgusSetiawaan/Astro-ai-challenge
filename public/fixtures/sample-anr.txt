@@ -1,0 +1,8 @@
+Fatal Exception: java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.example.app.User.name' on a null object reference
+       at com.example.app.MainActivity.onResume(MainActivity.kt:88)
+       at android.app.Activity.performResume(Activity.java:8615)
+       at android.app.ActivityThread.performResumeActivity(ActivityThread.java:4881)
+       at android.app.ActivityThread.handleResumeActivity(ActivityThread.java:4922)
+       at android.os.Handler.dispatchMessage(Handler.java:106)
+       at android.os.Looper.loop(Looper.java:288)
+       at android.app.ActivityThread.main(ActivityThread.java:7898)

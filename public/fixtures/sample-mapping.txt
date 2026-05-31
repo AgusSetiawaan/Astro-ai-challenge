@@ -1,0 +1,6 @@
+com.example.app.MainActivity -> a.b.c:
+    void onCreate(android.os.Bundle) -> a
+    void onResume() -> b
+com.example.app.User -> a.b.d:
+    java.lang.String getName() -> a
+    java.lang.String name -> b

@@ -19,8 +19,18 @@ export function StackView() {
 
   if (phase === 'idle') {
     return (
-      <div className="p-6 text-sm text-slate-500">
-        <p>Paste a crash on the left and click <strong>Analyze</strong>. The deobfuscated stack and an AI narrative will render here.</p>
+      <div className="p-6 text-sm text-slate-500 space-y-3">
+        <p>Paste a crash on the left and click <strong>Analyze</strong>.</p>
+        <button
+          className="px-3 py-1 border rounded text-slate-900 dark:text-slate-100"
+          onClick={async () => {
+            const [stack, mapping] = await Promise.all([
+              fetch('/fixtures/sample-anr.txt').then((r) => r.text()),
+              fetch('/fixtures/sample-mapping.txt').then((r) => r.text()),
+            ]);
+            useApp.getState().setInputs({ stackText: stack, mappingText: mapping });
+          }}
+        >Try sample crash</button>
       </div>
     );
   }
