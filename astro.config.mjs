@@ -13,7 +13,9 @@ const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
 // by default, API routes (src/pages/api/*) opt into SSR via the configured adapter.
 export default defineConfig({
   output: 'static',
-  adapter: isVercel ? vercel({ webAnalytics: { enabled: false } }) : node({ mode: 'standalone' }),
+  adapter: isVercel
+    ? vercel({ webAnalytics: { enabled: false }, maxDuration: 60 })
+    : node({ mode: 'standalone' }),
   devToolbar: { enabled: false },
   integrations: [react(), tailwind({ applyBaseStyles: false })],
   vite: {
