@@ -98,13 +98,16 @@ export async function validateProject(path: string, opts: GuardOpts = {}): Promi
 }
 
 export async function listBranches(path: string, opts: GuardOpts = {}): Promise<string[]> {
+  // Format token must be single-quoted: `%(...)` is shell-special otherwise.
+  // Each line may still be prefixed by `* ` (current branch) or `+ ` (current
+  // in another worktree) — strip those before returning.
   const { stdout } = await run(
-    `git -C ${quote(path)} branch --list --format=%(refname:short)`,
+    `git -C ${quote(path)} branch --list --format='%(refname:short)'`,
     opts.execFn
   );
   return stdout
     .split('\n')
-    .map((s) => s.trim())
+    .map((s) => s.replace(/^[*+]?\s+/, '').trim())
     .filter(Boolean)
     .sort();
 }
