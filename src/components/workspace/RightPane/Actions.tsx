@@ -53,8 +53,16 @@ export function Actions({ onOpenFix, isVercel = false }: { onOpenFix: () => void
         onClick={onOpenFix}
         disabled={fixDisabled}
         title={fixTitle}
-        className="px-3 py-2 rounded border-2 border-purple-500 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 disabled:opacity-40"
-      >Try Fix in connected project ⚙</button>
+        className="px-3 py-2 rounded border-2 border-purple-500 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        Try Fix in connected project ⚙
+        {isVercel && <span className="ml-2 text-[10px] uppercase tracking-wider bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">local only</span>}
+      </button>
+      {isVercel && (
+        <p className="text-xs text-amber-700 dark:text-amber-300 -mt-1">
+          Try Fix needs the local <code>claude</code> CLI + filesystem. Run <code>pnpm dev</code> to use it.
+        </p>
+      )}
 
       {error && <p className="text-xs text-amber-600">{error}</p>}
       {jiraResult && (
