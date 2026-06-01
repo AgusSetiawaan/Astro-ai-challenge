@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createDeepSeekClient } from '@/server/deepseek';
+import { streamClaude } from '@/server/claudeCli';
 import { createRateLimiter } from '@/server/rateLimit';
 import type { ChatMessage } from '@/lib/prompt/build';
 
@@ -18,6 +18,7 @@ function getLimiter(perHour: number) {
 interface LlmReqBody {
   messages: ChatMessage[];
   useThinking?: boolean;
+  /** Reserved; ignored for claude CLI backend (auth is via local `claude` login). */
   byokKey?: string;
 }
 
@@ -53,18 +54,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     }
   }
 
-  const apiKey = usingByok ? body.byokKey! : import.meta.env.DEEPSEEK_API_KEY;
-  if (!apiKey) return new Response('Server misconfigured', { status: 500 });
-
-  const client = createDeepSeekClient({ apiKey, baseURL: import.meta.env.DEEPSEEK_BASE_URL });
-
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        for await (const delta of client.chatStream({
+        for await (const delta of streamClaude({
           messages: body.messages,
-          useThinking: body.useThinking,
+          model: body.useThinking ? 'sonnet' : 'haiku',
           signal: request.signal,
         })) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
