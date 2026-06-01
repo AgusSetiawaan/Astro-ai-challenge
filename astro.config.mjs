@@ -9,6 +9,7 @@ import node from '@astrojs/node';
 export default defineConfig({
   output: 'static',
   adapter: node({ mode: 'standalone' }),
+  devToolbar: { enabled: false },
   integrations: [react(), tailwind({ applyBaseStyles: false })],
   vite: {
     worker: { format: 'es' },
