@@ -1,4 +1,4 @@
-import type { TicketDraft, CrashFormat } from '@/types';
+import type { TicketDraft, CrashFormat, FixResult } from '@/types';
 
 export interface HistoryEntry {
   id: string;
@@ -8,6 +8,7 @@ export interface HistoryEntry {
   detectedFormat: CrashFormat;
   ticketDraft: TicketDraft;
   jiraResult?: { key: string; url?: string };
+  fixResult?: FixResult;
 }
 
 const STORAGE_KEY = 'stacksurgeon.history';
