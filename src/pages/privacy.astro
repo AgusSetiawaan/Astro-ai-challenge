@@ -14,6 +14,7 @@ import '../styles/global.css';
     <li><strong>Your stacktrace</strong>: sent to Anthropic's Claude API via the locally-installed <code>claude</code> CLI, authenticated with whichever account is logged in on this machine (Claude Max / Pro subscription, or Anthropic API key). Tokens bill against that account. We do not log request bodies.</li>
     <li><strong>Your Jira credentials</strong>: stored in your browser (localStorage or sessionStorage, your choice). Sent only with each Jira request through our same-origin proxy, never stored on our server.</li>
     <li><strong>Your code snippet</strong>: sent to Claude with the stacktrace. Don't paste secrets.</li>
+    <li><strong>When you click <em>Try Fix</em></strong>: the connected project path you chose becomes Claude's working directory. Claude can <code>Read</code>, <code>Grep</code>, <code>Glob</code>, <code>Edit</code>, and run a couple of safe <code>git</code> commands via <code>Bash</code>. <code>Write</code>, <code>Task</code>, <code>WebSearch</code>, and <code>WebFetch</code> are blocked. Server validates the project path is under <code>ALLOWED_PROJECT_ROOTS</code>, that <code>.git/</code> exists, and that the working tree is clean before invoking Claude. No commits are made — edits live on a new branch named <code>stacksurgeon/fix-*</code> for you to review.</li>
   </ul>
   <h2>Known limitations</h2>
   <ul>

@@ -11,6 +11,7 @@ Web tool for Android engineers: paste a crash → get an editable Jira ticket in
 - Sends only the deobfuscated stack to Claude (via the local `claude` CLI subprocess, `--print --output-format=stream-json`) for a plain-English narrative + structured ticket draft.
 - Lets you edit the draft inline.
 - Files it as a Jira Cloud ticket via a same-origin proxy (you provide Jira API token + project key in Settings).
+- **Try Fix:** if you connect one of your Android repos in Settings, click **Try Fix in connected project** to have Claude branch off the chosen base branch (`main` by default), make a minimal edit attempt, and surface the result for you to review. No commits, no PR — branch + diff only.
 
 ## Privacy
 
@@ -37,6 +38,13 @@ pnpm dev
 ```
 
 Open http://localhost:4321/. Click **Try sample crash** → **Analyze ▶** to see the end-to-end flow.
+
+## Configure Try Fix (optional)
+
+1. Set `ALLOWED_PROJECT_ROOTS` in `.env.local` to a `:`-separated list of absolute path prefixes you trust (default = `$HOME`).
+2. In the app, open **Settings → Connected projects** and either paste your Android repo's absolute path or click **Find Android projects** to scan common dev directories.
+3. Each project must have a clean working tree (stash or commit uncommitted work first).
+4. After Analyze, click **Try Fix in connected project**. Pick the project + base branch in the drawer; click **Run**. Claude streams its tool calls, then leaves you a new branch named `stacksurgeon/fix-<id>` on disk for review.
 
 ## Configure Jira (optional)
 
