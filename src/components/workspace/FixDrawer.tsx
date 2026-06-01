@@ -16,6 +16,9 @@ export function FixDrawer({ onClose }: { onClose: () => void }) {
   const classified = useApp((s) => s.classified);
   const deobfCrash = useApp((s) => s.deobfCrash);
   const snippet = useApp((s) => s.inputs.snippetText);
+  const stackText = useApp((s) => s.inputs.stackText);
+  const analyzedStackText = useApp((s) => s.analyzedStackText);
+  const inputsChangedSinceAnalyze = !!analyzedStackText && stackText.trim() !== analyzedStackText.trim();
   const fixLog = useApp((s) => s.fixLog);
   const fixResult = useApp((s) => s.fixResult);
   const fixError = useApp((s) => s.fixError);
@@ -99,6 +102,22 @@ export function FixDrawer({ onClose }: { onClose: () => void }) {
         </header>
 
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 space-y-3 text-sm">
+          {deobfCrash && (
+            <div className="border rounded p-2 bg-slate-50 dark:bg-slate-800">
+              <p className="text-xs uppercase text-slate-500 mb-1">Crash to fix</p>
+              <p className="text-sm font-mono break-words"><strong>{deobfCrash.exception}</strong>: {deobfCrash.message || '(no message)'}</p>
+              {classified && classified.length > 0 && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Top frame: <code>{classified[0].class}.{classified[0].method}</code>
+                </p>
+              )}
+            </div>
+          )}
+          {inputsChangedSinceAnalyze && (
+            <div className="border border-amber-400 bg-amber-50 dark:bg-amber-900/30 rounded p-2 text-amber-800 dark:text-amber-200 text-xs">
+              <strong>Stack input changed since last Analyze.</strong> The crash shown above is from the previous Analyze run. Click <strong>Analyze ▶</strong> on the left pane again so Try Fix uses the current crash.
+            </div>
+          )}
           {projects.length === 0 ? (
             <p className="text-amber-600 text-sm">No projects connected. Open Settings → Connected projects to add one.</p>
           ) : (
@@ -135,7 +154,8 @@ export function FixDrawer({ onClose }: { onClose: () => void }) {
 
               <button
                 onClick={run}
-                disabled={!project || !baseBranch || phase === 'fixing' || !ticketDraft}
+                disabled={!project || !baseBranch || phase === 'fixing' || !ticketDraft || !classified || !deobfCrash || inputsChangedSinceAnalyze}
+                title={inputsChangedSinceAnalyze ? 'Re-Analyze first' : !classified || !deobfCrash ? 'No analyzed crash in memory — Analyze first' : ''}
                 className="px-3 py-2 rounded bg-slate-900 text-white disabled:opacity-40"
               >
                 {phase === 'fixing' ? 'Running…' : 'Run'}

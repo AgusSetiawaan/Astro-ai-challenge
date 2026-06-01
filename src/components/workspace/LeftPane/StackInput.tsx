@@ -45,7 +45,7 @@ export function StackInput() {
 
     const deobf = deobfuscate(raw, deobfMap ?? new Map());
     const classified = classifyFrames(deobf.frames, APP_PACKAGE);
-    setParsed(raw, deobf, classified);
+    setParsed(raw, deobf, classified, stackText);
 
     const messages = buildPrompt({ crash: deobf, classified, snippet: snippet || undefined });
     const byok = createCredStore({ persist: 'local' }).get('byok');

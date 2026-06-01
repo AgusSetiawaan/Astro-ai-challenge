@@ -23,13 +23,15 @@ export interface AppState {
   errorMessage?: string;
   jiraResult?: { key: string; url?: string };
   currentHistoryId?: string;
+  /** Snapshot of the stack text that produced the current parsed/classified state. */
+  analyzedStackText?: string;
   fixLog: FixEvent[];
   fixResult?: FixResult;
   fixError?: string;
 
   setInputs: (patch: Partial<InputsState>) => void;
   setMappingTable: (t: MappingTable) => void;
-  setParsed: (p: RawCrash, deobf: DeobfCrash, classified: ClassifiedFrame[]) => void;
+  setParsed: (p: RawCrash, deobf: DeobfCrash, classified: ClassifiedFrame[], analyzedStackText: string) => void;
   appendLlm: (delta: string) => void;
   patchTicketField: <K extends keyof TicketDraft>(k: K, v: TicketDraft[K], dirty?: boolean) => void;
   setPhase: (phase: AppPhase, errorMessage?: string) => void;
@@ -56,7 +58,7 @@ export const useApp = create<AppState>((set) => ({
   fixLog: [],
   setInputs: (patch) => set((s) => ({ inputs: { ...s.inputs, ...patch } })),
   setMappingTable: (t) => set({ deobfMap: t }),
-  setParsed: (parsed, deobfCrash, classified) => set({ parsed, deobfCrash, classified, phase: 'parsed' }),
+  setParsed: (parsed, deobfCrash, classified, analyzedStackText) => set({ parsed, deobfCrash, classified, analyzedStackText, phase: 'parsed' }),
   appendLlm: (delta) => set((s) => ({ llmStreamBuffer: s.llmStreamBuffer + delta })),
   patchTicketField: (k, v, dirty = false) =>
     set((s) => {
@@ -90,7 +92,7 @@ export const useApp = create<AppState>((set) => ({
     parsed: undefined, deobfCrash: undefined, classified: undefined,
     llmStreamBuffer: '', ticketDraft: undefined, dirtyFields: new Set(),
     errorMessage: undefined, jiraResult: undefined, currentHistoryId: undefined,
-    fixLog: [], fixResult: undefined, fixError: undefined,
+    fixLog: [], fixResult: undefined, fixError: undefined, analyzedStackText: undefined,
     phase: 'idle',
   }),
   reset: () => set({
@@ -98,6 +100,7 @@ export const useApp = create<AppState>((set) => ({
     classified: undefined, llmStreamBuffer: '', ticketDraft: undefined,
     dirtyFields: new Set(), phase: 'idle', errorMessage: undefined, jiraResult: undefined,
     currentHistoryId: undefined, fixLog: [], fixResult: undefined, fixError: undefined,
+    analyzedStackText: undefined,
   }),
 }));
 
