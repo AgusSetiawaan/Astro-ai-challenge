@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TopBar } from './TopBar';
 import { SettingsModal } from './SettingsModal';
+import { HistoryDrawer } from './HistoryDrawer';
 import { InputTabs } from './LeftPane/InputTabs';
 import { StackView } from './MiddlePane/StackView';
 import { TicketEditor } from './RightPane/TicketEditor';
@@ -8,10 +9,14 @@ import { Actions } from './RightPane/Actions';
 
 export default function Workspace() {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar onOpenSettings={() => setSettingsOpen(true)} />
+      <TopBar
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenHistory={() => setHistoryOpen(true)}
+      />
       <main className="flex flex-1 overflow-hidden">
         <section className="w-1/4 min-w-[280px] border-r border-slate-200 dark:border-slate-800 overflow-y-auto">
           <InputTabs />
@@ -25,6 +30,7 @@ export default function Workspace() {
         </section>
       </main>
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {historyOpen && <HistoryDrawer onClose={() => setHistoryOpen(false)} />}
     </div>
   );
 }

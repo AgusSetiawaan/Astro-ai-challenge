@@ -22,6 +22,7 @@ export interface AppState {
   phase: AppPhase;
   errorMessage?: string;
   jiraResult?: { key: string; url?: string };
+  currentHistoryId?: string;
 
   setInputs: (patch: Partial<InputsState>) => void;
   setMappingTable: (t: MappingTable) => void;
@@ -30,6 +31,8 @@ export interface AppState {
   patchTicketField: <K extends keyof TicketDraft>(k: K, v: TicketDraft[K], dirty?: boolean) => void;
   setPhase: (phase: AppPhase, errorMessage?: string) => void;
   setJiraResult: (r: { key: string; url?: string }) => void;
+  setCurrentHistoryId: (id: string | undefined) => void;
+  loadFromHistory: (entry: { stackText: string; snippetText?: string; detectedFormat: import('@/types').CrashFormat; ticketDraft: TicketDraft; jiraResult?: { key: string; url?: string }; id: string }) => void;
   reset: () => void;
 }
 
@@ -54,10 +57,21 @@ export const useApp = create<AppState>((set) => ({
     }),
   setPhase: (phase, errorMessage) => set({ phase, errorMessage }),
   setJiraResult: (r) => set({ jiraResult: r, phase: 'filed' }),
+  setCurrentHistoryId: (id) => set({ currentHistoryId: id }),
+  loadFromHistory: (entry) => set({
+    inputs: { stackText: entry.stackText, mappingText: '', snippetText: entry.snippetText ?? '', detectedFormat: entry.detectedFormat },
+    ticketDraft: entry.ticketDraft,
+    jiraResult: entry.jiraResult,
+    currentHistoryId: entry.id,
+    parsed: undefined, deobfMap: undefined, deobfCrash: undefined, classified: undefined,
+    llmStreamBuffer: '', dirtyFields: new Set(), errorMessage: undefined,
+    phase: entry.jiraResult ? 'filed' : 'analyzed',
+  }),
   reset: () => set({
     inputs: blankInputs, parsed: undefined, deobfMap: undefined, deobfCrash: undefined,
     classified: undefined, llmStreamBuffer: '', ticketDraft: undefined,
     dirtyFields: new Set(), phase: 'idle', errorMessage: undefined, jiraResult: undefined,
+    currentHistoryId: undefined,
   }),
 }));
 

@@ -11,6 +11,7 @@ import { streamLlm, LlmHttpError } from '@/client/llmStream';
 import { createStreamParser } from '@/lib/ticket/streamParser';
 import { parseLlmOutput, LlmOutputError } from '@/lib/ticket/parseLlmOutput';
 import { createCredStore } from '@/client/credStore';
+import { history } from '@/client/history';
 import type { RawCrash, TicketDraft } from '@/types';
 
 const APP_PACKAGE = 'com.example.app'; // future: make configurable in Settings
@@ -65,17 +66,28 @@ export function StackInput() {
           patchTicketField(up.field as keyof TicketDraft, up.value as never);
         }
       }
+      let savedDraft: TicketDraft | null = null;
       try {
         const finalDraft = parseLlmOutput(buffer);
         (Object.keys(finalDraft) as (keyof TicketDraft)[]).forEach((k) =>
           patchTicketField(k, finalDraft[k] as never)
         );
+        savedDraft = finalDraft;
         setPhase('analyzed');
       } catch (e) {
         if (e instanceof LlmOutputError) {
           patchTicketField('summary', buffer);
           setPhase('analyzed', 'AI output unstructured; review before filing.');
         } else throw e;
+      }
+      if (savedDraft) {
+        const entry = history.add({
+          stackText,
+          snippetText: snippet || undefined,
+          detectedFormat: detected,
+          ticketDraft: savedDraft,
+        });
+        useApp.getState().setCurrentHistoryId(entry.id);
       }
     } catch (e) {
       if (ctrl.signal.aborted) return;

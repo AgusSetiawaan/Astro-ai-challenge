@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '@/client/store';
 import { createCredStore } from '@/client/credStore';
 import { fileJiraIssue } from '@/client/jiraClient';
+import { history } from '@/client/history';
 import type { JiraIssue } from '@/lib/ticket/toJiraPayload';
 
 export function JiraConfirm({ payload, onClose }: { payload: JiraIssue; onClose: () => void }) {
@@ -25,6 +26,8 @@ export function JiraConfirm({ payload, onClose }: { payload: JiraIssue; onClose:
     setPending(false);
     if (result.ok && result.key) {
       setJiraResult({ key: result.key, url: result.url });
+      const histId = useApp.getState().currentHistoryId;
+      if (histId) history.update(histId, { jiraResult: { key: result.key, url: result.url } });
       onClose();
     } else {
       setErr(result.error ?? `HTTP ${result.status}`);
