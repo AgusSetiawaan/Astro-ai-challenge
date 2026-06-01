@@ -132,6 +132,11 @@ export function HistoryDrawer({ onClose }: { onClose: () => void }) {
                             : e.jiraResult.key}
                         </p>
                       )}
+                      {e.fixResult && (
+                        <p className="text-xs text-purple-600 mt-1">
+                          Fix attempt: <code>{e.fixResult.branch}</code> ({e.fixResult.confidence})
+                        </p>
+                      )}
                     </div>
                     <button
                       onClick={() => deleteEntry(e)}
