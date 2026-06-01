@@ -1,4 +1,5 @@
 const KEY = 'stacksurgeon.projects';
+const subs = new Set<() => void>();
 
 function read(): string[] {
   if (typeof window === 'undefined') return [];
@@ -15,6 +16,7 @@ function read(): string[] {
 function write(paths: string[]): void {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(KEY, JSON.stringify(Array.from(new Set(paths))));
+  for (const fn of subs) fn();
 }
 
 export const projectStore = {
@@ -29,5 +31,11 @@ export const projectStore = {
   },
   clear(): void {
     if (typeof window !== 'undefined') window.localStorage.removeItem(KEY);
+    for (const fn of subs) fn();
+  },
+  /** Subscribe to add/remove/clear events. Returns unsubscribe fn. */
+  subscribe(fn: () => void): () => void {
+    subs.add(fn);
+    return () => subs.delete(fn);
   },
 };

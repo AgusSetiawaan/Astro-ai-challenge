@@ -14,7 +14,11 @@ export function Actions({ onOpenFix }: { onOpenFix: () => void }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [hasProjects, setHasProjects] = useState(false);
 
-  useEffect(() => { setHasProjects(projectStore.list().length > 0); }, []);
+  useEffect(() => {
+    const recheck = () => setHasProjects(projectStore.list().length > 0);
+    recheck();
+    return projectStore.subscribe(recheck);
+  }, []);
 
   if (!draft) return null;
 
