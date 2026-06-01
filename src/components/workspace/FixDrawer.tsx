@@ -148,7 +148,19 @@ export function FixDrawer({ onClose }: { onClose: () => void }) {
           {fixLog.length === 0 && phase !== 'fixing' && !fixResult && !fixError && (
             <p className="text-slate-500">Log appears here after you click Run.</p>
           )}
+          {phase === 'fixing' && fixLog.length === 0 && (
+            <p className="text-purple-500 flex items-center gap-2">
+              <span className="inline-block w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              Starting <code>claude</code> in <code>{project}</code>… first event in 5–20s.
+            </p>
+          )}
           {fixLog.map((ev, i) => <FixEventRow key={i} ev={ev} />)}
+          {phase === 'fixing' && fixLog.length > 0 && !fixResult && !fixError && (
+            <p className="text-purple-500 mt-2 flex items-center gap-2">
+              <span className="inline-block w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              Working…
+            </p>
+          )}
           {fixError && (
             <div className="mt-3 p-3 border border-red-300 rounded bg-red-50 dark:bg-red-900/30">
               <p className="text-sm font-medium text-red-700 dark:text-red-300">Fix failed</p>
