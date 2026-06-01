@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>StackSurgeon — One-pager</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-soft: #121933;
+    --fg: #e8ecf4;
+    --muted: #9aa3b8;
+    --accent: #b388ff;
+    --accent-2: #66e0c5;
+    --border: #232c4d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif; line-height: 1.5; }
+  main { max-width: 960px; margin: 0 auto; padding: 48px 24px 96px; }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px; }
+  h1 { font-size: 40px; line-height: 1.1; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h1 .badge { display: inline-block; vertical-align: middle; margin-left: 12px; padding: 4px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: var(--accent); color: #1a0a36; border-radius: 999px; }
+  .tagline { color: var(--muted); font-size: 18px; max-width: 64ch; }
+  h2 { font-size: 22px; margin: 40px 0 12px; letter-spacing: -0.2px; color: var(--accent); }
+  h3 { font-size: 16px; margin: 20px 0 8px; color: var(--accent-2); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  p, li { color: var(--fg); }
+  ul { padding-left: 22px; }
+  li + li { margin-top: 6px; }
+  code { background: var(--bg-soft); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+  pre { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-x: auto; font-size: 12.5px; line-height: 1.5; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); }
+  .card { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h3 { margin-top: 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; }
+  blockquote { margin: 12px 0; padding: 14px 18px; border-left: 3px solid var(--accent); background: var(--bg-soft); border-radius: 0 8px 8px 0; color: var(--fg); font-style: italic; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .pill { padding: 3px 10px; font-size: 12px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px; color: var(--muted); }
+  footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+    h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>StackSurgeon<span class="badge">Internal tool</span></h1>
+  <p class="tagline">Paste an Android crash → get a Jira-ready ticket. Optionally, have Claude attempt the fix in your repo on a fresh branch — branch + diff only, you review.</p>
+  <div class="pill-row">
+    <span class="pill">Astro 5</span>
+    <span class="pill">React 18</span>
+    <span class="pill">TypeScript</span>
+    <span class="pill">Claude Code CLI</span>
+    <span class="pill">Local-only</span>
+    <span class="pill">Browser localStorage</span>
+  </div>
+</header>
+
+<section>
+  <h2>The problem</h2>
+  <p>Android crash triage is repetitive, slow, and error-prone:</p>
+  <ul>
+    <li><strong>Reading obfuscated stacks</strong> — R8/ProGuard names hide intent; framework noise drowns the app frame.</li>
+    <li><strong>Writing tickets</strong> — every crash gets the same boilerplate: title, severity, suspected cause, repro steps.</li>
+    <li><strong>Acting on it</strong> — even after triage, someone still has to open the repo, find the file, and attempt a fix.</li>
+  </ul>
+  <p>StackSurgeon collapses that loop into <strong>paste → Analyze → File-to-Jira and/or Try-Fix</strong>, in under a few minutes per crash.</p>
+</section>
+
+<section>
+  <h2>How it works</h2>
+
+  <h3>AI platform</h3>
+  <p>Local <code>claude</code> CLI subprocess (Claude Code), authenticated against whatever account is logged in on the machine — typically a Max plan or Anthropic API key. All LLM work goes through <code>claude --print --output-format=stream-json</code>. No API keys live in the browser. Two modes:</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Ticket draft (<code>/api/llm</code>)</h3>
+      <p>Tools disabled. Claude reads the deobfuscated stack, returns one JSON object with <code>title</code>, <code>severity</code>, <code>labels</code>, <code>summary</code>, <code>suspectedCause</code>, <code>reproGuess</code>, <code>confidence</code>. Streamed back as Server-Sent Events; parsed incrementally so fields populate live.</p>
+    </div>
+    <div class="card">
+      <h3>Fix attempt (<code>/api/fix</code>)</h3>
+      <p>Tools enabled — <code>Read</code>, <code>Grep</code>, <code>Glob</code>, <code>Edit</code>, <code>Bash</code> — and <code>cwd</code> set to your connected Android project. Claude creates branch <code>stacksurgeon/fix-&lt;id&gt;</code>, investigates the repo, edits one file, leaves the diff in the working tree, ends with a structured summary.</p>
+    </div>
+  </div>
+
+  <h3>End-to-end flow</h3>
+<pre>Browser (React island, Zustand store)
+  │
+  ├─ paste crash (logcat / Crashlytics / Play Vitals) → auto-detect format
+  ├─ drag in mapping.txt → parsed in Web Worker (never uploaded)
+  ├─ optional code snippet
+  │
+  ├─► Analyze ▶
+  │     parse → deobfuscate → classify frames (app/framework/os/coroutine/native)
+  │     /api/llm → spawn claude → SSE stream → incremental JSON parse
+  │     ticket draft populates right pane (editable)
+  │     auto-saved to history (localStorage)
+  │
+  ├─► File to Jira → /api/jira proxy (SSRF-guarded) → Atlassian
+  │
+  └─► Try Fix in connected project
+        FixDrawer: pick project + base branch (dropdowns from /api/project-branches)
+        Run → /api/fix → projectGuard (ALLOWED_PROJECT_ROOTS, clean tree)
+              → git checkout &lt;base&gt; → spawn claude (cwd=project, tools enabled)
+              → SSE stream of {text | tool_use | tool_result | final | error}
+              → live log in drawer → final diff summary
+              → review with: cd &lt;project&gt; && git checkout stacksurgeon/fix-&lt;id&gt;</pre>
+</section>
+
+<section>
+  <h2>What gets produced (beyond text)</h2>
+  <table>
+    <thead><tr><th>Artifact</th><th>Format</th><th>How</th></tr></thead>
+    <tbody>
+      <tr><td>Editable ticket draft</td><td>JSON + Markdown</td><td>Copy MD / Download JSON in the right pane</td></tr>
+      <tr><td>Filed Jira ticket</td><td>Real issue in your Jira Cloud</td><td>File to Jira button (BYO API token)</td></tr>
+      <tr><td>Attempted source fix</td><td>New git branch + dirty working tree</td><td>Try Fix in connected project</td></tr>
+      <tr><td>Searchable history</td><td>localStorage entries with all of the above</td><td>History drawer; per-entry Load / Copy MD / Download JSON / File to Jira / Changes panel</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Privacy posture</h2>
+  <table>
+    <thead><tr><th>Data</th><th>Crosses to</th></tr></thead>
+    <tbody>
+      <tr><td><code>mapping.txt</code></td><td>Nowhere — parsed in a Web Worker in the browser tab</td></tr>
+      <tr><td>Stacktrace + snippet</td><td>Anthropic Claude API, via local <code>claude</code> CLI subprocess</td></tr>
+      <tr><td>Jira token</td><td>Atlassian (your Jira), via same-origin Astro proxy</td></tr>
+      <tr><td>Project source (Fix mode)</td><td>Anthropic Claude API, via tool invocations from your machine</td></tr>
+      <tr><td>Request bodies</td><td>Never logged on <code>/api/llm</code> or <code>/api/jira</code></td></tr>
+    </tbody>
+  </table>
+  <p>Server-side allowlist (<code>ALLOWED_PROJECT_ROOTS</code>) restricts Fix mode to a configured set of filesystem prefixes. Clean-tree gate refuses fix attempts when the project has tracked-file modifications, so nothing user-typed gets lost.</p>
+</section>
+
+<section>
+  <h2>What the prompt to build it was</h2>
+  <blockquote>"I want to create a tool-based AI, web-based, that can help me with my daily work. I'm an Android engineer. Identify a real problem in my day-to-day workflow that's repetitive, slow, or error-prone, then build a working web tool with a clear intent. The tool must produce an output beyond a text answer (file, ticket, diff, etc.), and be mindful of data privacy."</blockquote>
+  <p>That single brainstorm prompt drove the whole sequence: pick the problem (crash → ticket factory) from a short list of Android dev pain points → settle on architecture (Astro hybrid + local Claude CLI for LLM, browser-only for <code>mapping.txt</code>, Jira proxy via SSR endpoint) → write design spec → implementation plan → execute. Spec and plan live at <code>docs/superpowers/specs/</code> and <code>docs/superpowers/plans/</code>.</p>
+</section>
+
+<section>
+  <h2>How to try it</h2>
+<pre>git clone &lt;repo-url&gt; stacksurgeon &amp;&amp; cd stacksurgeon
+pnpm install
+pnpm dev
+# open http://localhost:4321/
+# click "Try sample crash" → "Analyze ▶"</pre>
+  <p>Optional: open <strong>Settings → Connected projects</strong>, paste an absolute path to a clean Android repo, then use <strong>Try Fix in connected project</strong> after any Analyze.</p>
+</section>
+
+<footer>
+  Built single-handedly for the AI Challenge brief. Local-only by design; no public deploy required.
+  See <code>README.md</code> in the repo for setup, configuration, privacy details, and known limitations.
+</footer>
+
+</main>
+</body>
+</html>
