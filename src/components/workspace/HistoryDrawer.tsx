@@ -5,6 +5,8 @@ import { createCredStore, type JiraCreds } from '@/client/credStore';
 import { fileJiraIssue } from '@/client/jiraClient';
 import { toMarkdown } from '@/lib/ticket/toMarkdown';
 import { toJiraPayload } from '@/lib/ticket/toJiraPayload';
+import { projectStore } from '@/client/projectStore';
+import type { FixResult } from '@/types';
 
 function formatTime(ms: number): string {
   const d = new Date(ms);
@@ -145,6 +147,10 @@ export function HistoryDrawer({ onClose }: { onClose: () => void }) {
                     >×</button>
                   </div>
 
+                  {e.fixResult && (
+                    <FixResultPanel result={e.fixResult} entryId={e.id} />
+                  )}
+
                   <div className="flex flex-wrap gap-2 text-xs">
                     <button onClick={() => loadEntry(e)} className="px-2 py-1 border rounded">Load</button>
                     <button onClick={() => copyMd(e)} className="px-2 py-1 border rounded">Copy MD</button>
@@ -164,5 +170,44 @@ export function HistoryDrawer({ onClose }: { onClose: () => void }) {
         </div>
       </aside>
     </div>
+  );
+}
+
+function FixResultPanel({ result, entryId }: { result: FixResult; entryId: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const projects = projectStore.list();
+
+  function copyCheckout() {
+    const project = projects[0] ?? '<project-path>';
+    navigator.clipboard.writeText(`cd ${project} && git checkout ${result.branch}`);
+  }
+
+  return (
+    <details
+      className="border border-purple-200 dark:border-purple-800 rounded bg-purple-50/50 dark:bg-purple-900/20 text-xs"
+      open={expanded}
+      onToggle={(e) => setExpanded((e.target as HTMLDetailsElement).open)}
+      data-entry-id={entryId}
+    >
+      <summary className="cursor-pointer px-2 py-1 select-none">
+        <span className="text-purple-700 dark:text-purple-300 font-medium">Changes</span>
+        {' — '}
+        <span className="text-slate-600 dark:text-slate-300">{result.summary}</span>
+      </summary>
+      <div className="px-2 pb-2 space-y-1">
+        <p><strong>Branch:</strong> <code>{result.branch}</code></p>
+        <p><strong>Confidence:</strong> {result.confidence}</p>
+        <div>
+          <strong>Files changed ({result.filesChanged.length}):</strong>
+          <ul className="list-disc pl-5 mt-0.5">
+            {result.filesChanged.map((f) => <li key={f}><code>{f}</code></li>)}
+          </ul>
+        </div>
+        <p><strong>What changed:</strong> {result.diffSummary}</p>
+        <button onClick={copyCheckout} className="mt-1 px-2 py-1 border rounded">
+          Copy checkout cmd
+        </button>
+      </div>
+    </details>
   );
 }
