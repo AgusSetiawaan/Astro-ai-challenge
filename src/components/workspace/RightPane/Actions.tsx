@@ -5,7 +5,7 @@ import { toJiraPayload } from '@/lib/ticket/toJiraPayload';
 import { projectStore } from '@/client/projectStore';
 import { JiraConfirm } from './JiraConfirm';
 
-export function Actions({ onOpenFix }: { onOpenFix: () => void }) {
+export function Actions({ onOpenFix, isVercel = false }: { onOpenFix: () => void; isVercel?: boolean }) {
   const draft = useApp((s) => s.ticketDraft);
   const jiraResult = useApp((s) => s.jiraResult);
   const fixResult = useApp((s) => s.fixResult);
@@ -33,7 +33,6 @@ export function Actions({ onOpenFix }: { onOpenFix: () => void }) {
     URL.revokeObjectURL(url);
   }
 
-  const isVercel = import.meta.env.PUBLIC_DEPLOY_TARGET === 'vercel';
   const fixDisabled = isVercel || !hasProjects || phase === 'fixing';
   const fixTitle = isVercel
     ? 'Try Fix is local-only — Vercel cannot run claude CLI or access your filesystem. Self-host (pnpm dev) to use it.'

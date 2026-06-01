@@ -2,6 +2,10 @@
 import '../styles/global.css';
 import Workspace from '../components/workspace/Workspace';
 const isDev = import.meta.env.DEV;
+// Server-detect Vercel at render time. Astro serializes the prop into the
+// island HTML so the React side gets the correct value without relying on
+// Vite inlining of PUBLIC_* env vars at build time.
+const isVercel = !!process.env.VERCEL;
 ---
 <!doctype html>
 <html lang="en">
@@ -20,6 +24,6 @@ const isDev = import.meta.env.DEV;
   )}
 </head>
 <body>
-  <Workspace client:load />
+  <Workspace isVercel={isVercel} client:load />
 </body>
 </html>
