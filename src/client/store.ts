@@ -33,6 +33,8 @@ export interface AppState {
   setJiraResult: (r: { key: string; url?: string }) => void;
   setCurrentHistoryId: (id: string | undefined) => void;
   loadFromHistory: (entry: { stackText: string; snippetText?: string; detectedFormat: import('@/types').CrashFormat; ticketDraft: TicketDraft; jiraResult?: { key: string; url?: string }; id: string }) => void;
+  /** Wipe per-analysis state but keep inputs (stack/mapping/snippet) and deobfMap. */
+  clearAnalysis: () => void;
   reset: () => void;
 }
 
@@ -66,6 +68,12 @@ export const useApp = create<AppState>((set) => ({
     parsed: undefined, deobfMap: undefined, deobfCrash: undefined, classified: undefined,
     llmStreamBuffer: '', dirtyFields: new Set(), errorMessage: undefined,
     phase: entry.jiraResult ? 'filed' : 'analyzed',
+  }),
+  clearAnalysis: () => set({
+    parsed: undefined, deobfCrash: undefined, classified: undefined,
+    llmStreamBuffer: '', ticketDraft: undefined, dirtyFields: new Set(),
+    errorMessage: undefined, jiraResult: undefined, currentHistoryId: undefined,
+    phase: 'idle',
   }),
   reset: () => set({
     inputs: blankInputs, parsed: undefined, deobfMap: undefined, deobfCrash: undefined,

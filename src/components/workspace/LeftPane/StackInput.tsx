@@ -35,6 +35,7 @@ export function StackInput() {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    useApp.getState().clearAnalysis();
     setPhase('parsing');
     let raw: RawCrash;
     if (detected === 'logcat') raw = parseLogcat(stackText)[0] ?? { exception: 'Unknown', message: '', frames: [] };
