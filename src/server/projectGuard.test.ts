@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ExecException } from 'node:child_process';
 import {
+  validatePath,
   validateProject,
   listBranches,
   currentBranch,
@@ -48,14 +49,23 @@ describe('validateProject', () => {
     if (!r.ok) expect(r.reason).toMatch(/git repo/);
   });
 
-  it('rejects dirty working tree', async () => {
+  it('rejects when tracked files are modified', async () => {
     await mkdir(join(tmp, '.git'));
     const r = await validateProject(tmp, {
       roots: [tmp],
       execFn: fakeExec({ 'status --porcelain': { stdout: ' M src/foo.ts\n?? extra.md\n' } }),
     });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.reason).toMatch(/dirty/);
+    if (!r.ok) expect(r.reason).toMatch(/uncommitted/);
+  });
+
+  it('tolerates untracked-only working tree', async () => {
+    await mkdir(join(tmp, '.git'));
+    const r = await validateProject(tmp, {
+      roots: [tmp],
+      execFn: fakeExec({ 'status --porcelain': { stdout: '?? a.md\n?? subdir/\n' } }),
+    });
+    expect(r.ok).toBe(true);
   });
 
   it('accepts a clean git project under root', async () => {
@@ -66,6 +76,19 @@ describe('validateProject', () => {
     });
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.path).toBe(tmp);
+  });
+});
+
+describe('validatePath', () => {
+  it('accepts a git repo even when status would show changes', async () => {
+    await mkdir(join(tmp, '.git'));
+    const r = await validatePath(tmp, { roots: [tmp] });
+    expect(r.ok).toBe(true);
+  });
+
+  it('rejects non-git dir', async () => {
+    const r = await validatePath(tmp, { roots: [tmp] });
+    expect(r.ok).toBe(false);
   });
 });
 

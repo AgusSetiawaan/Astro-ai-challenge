@@ -44,7 +44,12 @@ export interface GuardOpts {
   roots?: string[];
 }
 
-export async function validateProject(path: string, opts: GuardOpts = {}): Promise<ValidateResult> {
+/**
+ * Light validation: absolute path, under ALLOWED_PROJECT_ROOTS, contains `.git/`.
+ * Use for read-only ops (listing branches, reading applicationId). Does NOT
+ * check working-tree cleanliness.
+ */
+export async function validatePath(path: string, opts: GuardOpts = {}): Promise<ValidateResult> {
   if (typeof path !== 'string' || !path.startsWith('/')) {
     return { ok: false, reason: 'projectPath must be an absolute filesystem path' };
   }
@@ -59,12 +64,31 @@ export async function validateProject(path: string, opts: GuardOpts = {}): Promi
   } catch {
     return { ok: false, reason: 'not a git repo (missing .git/)' };
   }
+  return { ok: true, path: abs };
+}
+
+/**
+ * Heavy validation: `validatePath` PLUS a working-tree cleanliness check.
+ * Use before invoking Claude in fix mode.
+ *
+ * "Dirty" here means tracked-file modifications (M, A, D, R, C, U, T). Untracked
+ * files (`??`) are tolerated because `git checkout <branch>` works in their
+ * presence and they don't carry edits that could be lost.
+ */
+export async function validateProject(path: string, opts: GuardOpts = {}): Promise<ValidateResult> {
+  const light = await validatePath(path, opts);
+  if (!light.ok) return light;
+  const abs = light.path;
   try {
     const { stdout } = await run(`git -C ${quote(abs)} status --porcelain`, opts.execFn);
-    if (stdout.trim().length > 0) {
+    const lines = stdout.split('\n').filter((l) => l.length > 0);
+    const trackedDirty = lines.filter((l) => !l.startsWith('?? '));
+    if (trackedDirty.length > 0) {
       return {
         ok: false,
-        reason: `working tree is dirty — commit, stash, or discard before fix mode:\n${stdout.trim().split('\n').slice(0, 10).join('\n')}`,
+        reason:
+          `working tree has uncommitted changes — commit, stash, or discard before fix mode:\n` +
+          trackedDirty.slice(0, 10).join('\n'),
       };
     }
   } catch (e) {

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { validateProject, listBranches, currentBranch, defaultBranch } from '@/server/projectGuard';
+import { validatePath, listBranches, currentBranch, defaultBranch } from '@/server/projectGuard';
 
 export const prerender = false;
 
@@ -11,7 +11,7 @@ export const GET: APIRoute = async ({ url }) => {
       headers: { 'content-type': 'application/json' },
     });
   }
-  const guard = await validateProject(path);
+  const guard = await validatePath(path);
   if (!guard.ok) {
     return new Response(JSON.stringify({ error: guard.reason }), {
       status: 400,
