@@ -47,3 +47,18 @@ export interface MappingEntry {
 export type MappingTable = Map<string, MappingEntry>;
 
 export type CrashFormat = 'logcat' | 'crashlytics' | 'vitals' | 'unknown';
+
+export interface FixResult {
+  branch: string;
+  filesChanged: string[];
+  diffSummary: string;
+  summary: string;
+  confidence: Confidence;
+}
+
+export type FixEvent =
+  | { type: 'text'; text: string }
+  | { type: 'tool_use'; name: string; input: unknown; id?: string }
+  | { type: 'tool_result'; toolUseId?: string; output: string; isError?: boolean }
+  | { type: 'final'; result: FixResult }
+  | { type: 'error'; message: string };
