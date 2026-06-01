@@ -2,13 +2,13 @@
 
 Web tool for Android engineers: paste a crash → get an editable Jira ticket in seconds.
 
-**Live demo:** _add link after first Vercel deploy_
+**Local-only.** The LLM backend shells out to your locally-installed `claude` CLI, so this tool only runs on a machine where Claude Code is logged in (Max plan, Pro, or Anthropic API key — whichever the local CLI is authed against).
 
 ## What it does
 
 - Accepts logcat / Crashlytics / Play Vitals dumps; auto-detects format.
 - Deobfuscates frames using a ProGuard `mapping.txt` you drag in (parsed entirely in your browser; never uploaded).
-- Sends only the deobfuscated stack to DeepSeek `deepseek-v4-flash` for a plain-English narrative + structured ticket draft.
+- Sends only the deobfuscated stack to Claude (via the local `claude` CLI subprocess, `--print --output-format=stream-json`) for a plain-English narrative + structured ticket draft.
 - Lets you edit the draft inline.
 - Files it as a Jira Cloud ticket via a same-origin proxy (you provide Jira API token + project key in Settings).
 
@@ -17,44 +17,52 @@ Web tool for Android engineers: paste a crash → get an editable Jira ticket in
 | Data | Crosses to |
 |---|---|
 | `mapping.txt` | Nowhere — parsed in a Web Worker in your tab |
-| Stacktrace + snippet | DeepSeek (servers in China), via our same-origin proxy |
-| Jira token | Atlassian (your Jira instance), via our same-origin proxy |
+| Stacktrace + snippet | Anthropic (Claude API), via local `claude` CLI subprocess |
+| Jira token | Atlassian (your Jira instance), via our same-origin Astro proxy |
 | Anything | We do not log request bodies on `/api/llm` or `/api/jira` |
 
 See `/privacy` in-app for the full statement.
 
-## BYOK
+## Prerequisites
 
-- The free demo uses our shared DeepSeek key, rate-limited to 20 calls/hour per IP.
-- Add your own DeepSeek key in Settings to bypass the rate limit (you pay your own quota).
+- Node 20+, `pnpm`
+- `claude` CLI installed and logged in (`claude login`). Verify with `claude --version`.
 
-## Self-host
+## Run locally
 
 ```bash
 git clone <repo-url> stacksurgeon && cd stacksurgeon
-cp .env.example .env.local && $EDITOR .env.local   # paste your DEEPSEEK_API_KEY
 pnpm install
 pnpm dev
 ```
 
-Deploy to Vercel (or any Node host that supports SSE):
+Open http://localhost:4321/. Click **Try sample crash** → **Analyze ▶** to see the end-to-end flow.
 
-```bash
-vercel
-```
+## Configure Jira (optional)
 
-Set `DEEPSEEK_API_KEY` in the Vercel project's env vars.
+Open **Settings** in the top bar and paste:
+- Jira base URL (e.g. `https://acme.atlassian.net`)
+- Email
+- API token (create at id.atlassian.com)
+- Project key (e.g. `ANDROID`)
+
+Stored in browser localStorage or sessionStorage (your choice).
+
+## Why not deploy to Vercel?
+
+The LLM backend requires a `claude` CLI binary plus an interactive login session on the host. Serverless runtimes can't satisfy either. To make this deployable you'd need to either ship an Anthropic API key as an env var and rewrite `src/server/claudeCli.ts` to call the HTTP API directly, or run the app on a long-lived host (Fly machine, Hetzner box) with `claude login` performed once.
 
 ## Known limitations
 
-- Rate limit is in-memory per serverless instance — multi-replica deployments allow more total calls than the per-IP budget suggests.
+- Rate limit is in-memory; restarting `pnpm dev` resets it.
 - Prompt-injection mitigation is best-effort (`<crash_data>` tags + system instruction).
 - Jira Cloud only — no Server / Data Center.
 - Mapping files larger than 100 MB are rejected; run `proguard-retrace` locally first.
+- Each `claude --print` call carries the session-startup overhead of your local Claude Code config (hooks, plugins). Budget ~5–10s and ~$0.04 per analyze.
 
 ## Stack
 
-Astro 5, React 18, TailwindCSS, Zustand, Vitest, Playwright, `openai` SDK pointed at DeepSeek.
+Astro 5, React 18, TailwindCSS, Zustand, Vitest, Playwright. Server proxy spawns `claude` for LLM; same-origin proxy for Jira REST.
 
 ## Design + plan
 

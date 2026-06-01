@@ -43,9 +43,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           <input className="w-full p-2 border rounded" placeholder="Project key (e.g. ANDROID)" value={jira.projectKey ?? ''} onChange={(e) => setJira({ ...jira, projectKey: e.target.value })} />
         </fieldset>
 
-        <fieldset className="mb-4">
-          <legend className="font-medium mb-1">DeepSeek BYOK (optional, bypasses rate limit)</legend>
-          <input className="w-full p-2 border rounded" type="password" placeholder="sk-..." value={byok.deepseekKey ?? ''} onChange={(e) => setByok({ deepseekKey: e.target.value })} />
+        <fieldset className="mb-4 opacity-60">
+          <legend className="font-medium mb-1">LLM backend</legend>
+          <p className="text-xs">Uses your local <code>claude</code> CLI login (Max plan, Pro, or API key). No key to enter here — run <code>claude login</code> in a terminal if Analyze 500s.</p>
         </fieldset>
 
         <div className="flex justify-end gap-2">

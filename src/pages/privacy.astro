@@ -11,13 +11,14 @@ import '../styles/global.css';
   <h1>What crosses where</h1>
   <ul>
     <li><strong>Your <code>mapping.txt</code></strong>: parsed entirely inside your browser in a Web Worker. Never uploaded.</li>
-    <li><strong>Your stacktrace</strong>: sent to DeepSeek's API (servers in China) via our server proxy. We do not log request bodies.</li>
+    <li><strong>Your stacktrace</strong>: sent to Anthropic's Claude API via the locally-installed <code>claude</code> CLI, authenticated with whichever account is logged in on this machine (Claude Max / Pro subscription, or Anthropic API key). Tokens bill against that account. We do not log request bodies.</li>
     <li><strong>Your Jira credentials</strong>: stored in your browser (localStorage or sessionStorage, your choice). Sent only with each Jira request through our same-origin proxy, never stored on our server.</li>
-    <li><strong>Your code snippet</strong>: sent to DeepSeek with the stacktrace. Don't paste secrets.</li>
+    <li><strong>Your code snippet</strong>: sent to Claude with the stacktrace. Don't paste secrets.</li>
   </ul>
   <h2>Known limitations</h2>
   <ul>
-    <li>Rate limit (20 calls/hr per IP) is in-memory per serverless instance — may permit more in practice.</li>
+    <li>Rate limit (20 calls/hr per IP) is in-memory per server instance.</li>
+    <li><strong>Local-only by design:</strong> the LLM backend shells out to your local <code>claude</code> CLI, so the app must run on a machine where Claude Code is installed and logged in. Vercel / serverless deploys will not work without bundling a token.</li>
     <li>Prompt-injection mitigation is best-effort (data wrapped in tags). A determined attacker putting LLM-targeted text in a stack could influence output.</li>
     <li>Jira Cloud only. No Server / Data Center.</li>
     <li>Mapping files over 100 MB are rejected — run <code>proguard-retrace</code> locally first.</li>
