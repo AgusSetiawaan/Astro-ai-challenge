@@ -8,5 +8,7 @@ interface ImportMetaEnv {
   readonly ALLOWED_JIRA_HOST_REGEX?: string;
   readonly ALLOWED_PROJECT_ROOTS?: string;
   readonly SENTRY_DSN?: string;
+  /** Set to "vercel" on the Vercel-deployed build. Drives feature gating. */
+  readonly PUBLIC_DEPLOY_TARGET?: string;
 }
 interface ImportMeta { readonly env: ImportMetaEnv; }

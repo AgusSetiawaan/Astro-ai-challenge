@@ -4,6 +4,12 @@ import { validatePath, listBranches, currentBranch, defaultBranch } from '@/serv
 export const prerender = false;
 
 export const GET: APIRoute = async ({ url }) => {
+  if (process.env.VERCEL) {
+    return new Response(
+      JSON.stringify({ error: 'Try Fix is unavailable on Vercel — needs local filesystem + git.' }),
+      { status: 503, headers: { 'content-type': 'application/json' } }
+    );
+  }
   const path = url.searchParams.get('path');
   if (!path) {
     return new Response(JSON.stringify({ error: 'missing ?path' }), {

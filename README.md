@@ -75,7 +75,8 @@ Source: `docs/superpowers/specs/2026-05-31-crash-ticket-factory-design.md` and `
 | Data | Crosses to |
 |---|---|
 | `mapping.txt` | Nowhere — parsed in a Web Worker in your tab |
-| Stacktrace + snippet | Anthropic (Claude API), via local `claude` CLI subprocess |
+| Stacktrace + snippet (local dev) | Anthropic (Claude API), via local `claude` CLI subprocess |
+| Stacktrace + snippet (Vercel deploy) | DeepSeek (servers in China), via Astro SSR proxy with your `DEEPSEEK_API_KEY` |
 | Jira token | Atlassian (your Jira instance), via our same-origin Astro proxy |
 | Anything | We do not log request bodies on `/api/llm` or `/api/jira` |
 
@@ -113,9 +114,22 @@ Open **Settings** in the top bar and paste:
 
 Stored in browser localStorage or sessionStorage (your choice).
 
-## Why not deploy to Vercel?
+## Deploy to Vercel (Analyze + Jira only — Try Fix stays local)
 
-The LLM backend requires a `claude` CLI binary plus an interactive login session on the host. Serverless runtimes can't satisfy either. To make this deployable you'd need to either ship an Anthropic API key as an env var and rewrite `src/server/claudeCli.ts` to call the HTTP API directly, or run the app on a long-lived host (Fly machine, Hetzner box) with `claude login` performed once.
+The app supports a hybrid backend: local dev keeps using your `claude` CLI; the Vercel-deployed instance uses the **DeepSeek HTTP API** (~$0.003/analyze) so it works in serverless. Try Fix mode is hidden on Vercel (no filesystem, no `claude` CLI on serverless functions).
+
+1. Sign up at https://platform.deepseek.com → add billing → generate API key
+2. Push the repo to GitHub
+3. Import the repo at https://vercel.com/new
+4. In Vercel project → Settings → Environment Variables, add:
+   - `DEEPSEEK_API_KEY` = your DeepSeek key
+   - `PUBLIC_DEPLOY_TARGET` = `vercel` *(also set automatically by `vercel.json` in this repo)*
+5. Deploy. First build takes ~2 minutes.
+
+What works on Vercel: paste crash → Analyze → ticket draft → File to Jira → History.
+What doesn't: Try Fix in connected project (button shows with "self-host only" tooltip, disabled).
+
+The Astro adapter switches automatically: `astro.config.mjs` checks `process.env.VERCEL` at build time → uses `@astrojs/vercel`. Local `pnpm build` still uses `@astrojs/node`.
 
 ## Known limitations
 

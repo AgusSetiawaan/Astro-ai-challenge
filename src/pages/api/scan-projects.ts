@@ -13,6 +13,12 @@ function getLimiter(perHour: number) {
 }
 
 export const GET: APIRoute = async ({ clientAddress }) => {
+  if (process.env.VERCEL) {
+    return new Response(JSON.stringify({ candidates: [] }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
   const r = getLimiter(5).check(clientAddress ?? 'unknown');
   if (!r.ok) {
     return new Response(JSON.stringify({ error: 'rate_limited', resetAt: r.resetAt }), {

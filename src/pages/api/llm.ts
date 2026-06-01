@@ -1,9 +1,34 @@
 import type { APIRoute } from 'astro';
 import { streamClaude } from '@/server/claudeCli';
+import { createDeepSeekClient } from '@/server/deepseek';
 import { createRateLimiter } from '@/server/rateLimit';
 import type { ChatMessage } from '@/lib/prompt/build';
 
 export const prerender = false;
+
+// Backend split: local dev/self-host uses claude CLI subprocess (free against
+// your Max plan). Vercel-deployed instance has no claude CLI, so DeepSeek
+// HTTP API is used instead (billed against DEEPSEEK_API_KEY).
+function pickBackend(): 'deepseek' | 'claude-cli' {
+  if (process.env.DEEPSEEK_API_KEY && process.env.DEEPSEEK_API_KEY.length > 0) return 'deepseek';
+  if (process.env.VERCEL) return 'deepseek'; // will fail clearly below if no key
+  return 'claude-cli';
+}
+
+async function* streamFromBackend(args: { messages: ChatMessage[]; useThinking?: boolean; signal?: AbortSignal }): AsyncIterable<string> {
+  if (pickBackend() === 'deepseek') {
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) throw new Error('DEEPSEEK_API_KEY env var not set');
+    const client = createDeepSeekClient({ apiKey, baseURL: process.env.DEEPSEEK_BASE_URL });
+    yield* client.chatStream({ messages: args.messages, useThinking: args.useThinking, signal: args.signal });
+    return;
+  }
+  yield* streamClaude({
+    messages: args.messages,
+    model: args.useThinking ? 'sonnet' : 'haiku',
+    signal: args.signal,
+  });
+}
 
 // Lazily-built limiter keyed by configured per-hour value so test env overrides
 // (via vi.stubEnv) take effect at request time rather than module-load time.
@@ -58,9 +83,9 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        for await (const delta of streamClaude({
+        for await (const delta of streamFromBackend({
           messages: body.messages,
-          model: body.useThinking ? 'sonnet' : 'haiku',
+          useThinking: body.useThinking,
           signal: request.signal,
         })) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));

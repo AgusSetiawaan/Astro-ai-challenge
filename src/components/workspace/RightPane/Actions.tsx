@@ -33,12 +33,15 @@ export function Actions({ onOpenFix }: { onOpenFix: () => void }) {
     URL.revokeObjectURL(url);
   }
 
-  const fixDisabled = !hasProjects || phase === 'fixing';
-  const fixTitle = !hasProjects
-    ? 'Add a project in Settings → Connected projects first.'
-    : phase === 'fixing'
-      ? 'Fix already running…'
-      : 'Open Try Fix';
+  const isVercel = import.meta.env.PUBLIC_DEPLOY_TARGET === 'vercel';
+  const fixDisabled = isVercel || !hasProjects || phase === 'fixing';
+  const fixTitle = isVercel
+    ? 'Try Fix is local-only — Vercel cannot run claude CLI or access your filesystem. Self-host (pnpm dev) to use it.'
+    : !hasProjects
+      ? 'Add a project in Settings → Connected projects first.'
+      : phase === 'fixing'
+        ? 'Fix already running…'
+        : 'Open Try Fix';
 
   return (
     <div className="p-3 flex flex-col gap-2 text-sm">

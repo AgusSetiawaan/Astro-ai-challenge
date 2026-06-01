@@ -45,6 +45,12 @@ function isValidBody(b: unknown): b is FixReqBody {
 }
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
+  if (process.env.VERCEL) {
+    return new Response(
+      JSON.stringify({ error: 'Try Fix is unavailable on Vercel — needs local claude CLI + filesystem access. Self-host (pnpm dev) to use it.' }),
+      { status: 503, headers: { 'content-type': 'application/json' } }
+    );
+  }
   const PER_HOUR = Number(import.meta.env.RATE_LIMIT_PER_HOUR ?? 20);
 
   let body: unknown;

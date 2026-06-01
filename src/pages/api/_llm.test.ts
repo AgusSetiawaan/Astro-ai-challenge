@@ -1,10 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock the claude CLI wrapper so tests don't spawn real subprocesses.
+// Mock BOTH backends so tests don't spawn real subprocesses or hit network.
 vi.mock('@/server/claudeCli', () => ({
   streamClaude: vi.fn(async function* () {
-    yield 'hello';
+    yield 'cli-hello';
   }),
+}));
+vi.mock('@/server/deepseek', () => ({
+  createDeepSeekClient: vi.fn(() => ({
+    async *chatStream() { yield 'ds-hello'; },
+  })),
 }));
 
 import { POST } from './llm';
